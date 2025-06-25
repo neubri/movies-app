@@ -4,16 +4,15 @@ if (process.env.NODE_ENV !== "production") {
 
 const cors = require("cors");
 const express = require("express");
-const multer = require("multer"); //multer step 1 - setelah npm i multer dan axios
+const multer = require("multer");
 
-const UserController = require("./controllers/UsersController");
-const TestController = require("./controllers/TestController");
-const ArticleController = require("./controllers/ArticleController");
-const CategoryController = require("./controllers/CategoryController");
+const UserController = require("./controllers/UserController");
+const MovieController = require("./controllers/MovieController");
+const FavoriteController = require("./controllers/FavoriteController");
+const RecommendationController = require("./controllers/RecommendationController");
 const PubController = require("./controllers/PubController");
 const errorHandler = require("./middlewares/errorHandler");
 const authentication = require("./middlewares/authentication");
-const { isAdmin, isAdminOrStaff } = require("./middlewares/authorization");
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -22,59 +21,78 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.get("/", TestController.getTest);
+// Test endpoint
+app.get("/", (req, res) => {
+  res.json({
+    message: "AI Movie Recommender API",
+    version: "1.0.0",
+    endpoints: {
+      public: [
+        "GET /",
+        "POST /register",
+        "POST /login",
+        "POST /google-login",
+        "GET /pub/movies",
+        "GET /pub/movies/:id",
+        "GET /pub/genres"
+      ],
+      authenticated: [
+        "GET /movies",
+        "GET /movies/:id",
+        "POST /favorites",
+        "DELETE /favorites/:movieId",
+        "GET /favorites",
+        "POST /recommendations",
+        "GET /profile"
+      ]
+    }
+  });
+});
 
 // ========== AUTH ROUTES ==========
-//users endpoints
-//ini bukan dari router jadi authentikasi nya masukin manual
+app.post("/register", UserController.register);
 app.post("/login", UserController.login);
-app.post("/add-user", authentication, isAdmin, UserController.addUser);
+app.post("/google-login", UserController.googleLogin);
 
-// ========== SETUP ==========
-const articleRouter = express.Router();
-const categoryRouter = express.Router();
+// ========== SETUP ROUTERS ==========
+const movieRouter = express.Router();
+const favoriteRouter = express.Router();
+const recommendationRouter = express.Router();
 const pubRouter = express.Router();
 
 // ========== MIDDLEWARE ==========
-//pasang middleware di router article
-articleRouter.use(authentication);
-// categoryRouter.use(authentication);
+movieRouter.use(authentication);
+favoriteRouter.use(authentication);
+recommendationRouter.use(authentication);
 
-// ========== ARTICLE ROUTES ==========
-articleRouter.get("/", ArticleController.getArticle);
-articleRouter.post("/", ArticleController.createArticle);
-articleRouter.get("/:id", ArticleController.getArticleById);
-articleRouter.put("/:id", isAdminOrStaff, ArticleController.updateArticleById);
-articleRouter.delete(
-  "/:id",
-  isAdminOrStaff,
-  ArticleController.deleteArticleById
-);
+// ========== MOVIE ROUTES ==========
+movieRouter.get("/", MovieController.getMovies);
+movieRouter.get("/:id", MovieController.getMovieById);
 
-//multer
-//link: https://www.npmjs.com/package/multer (yang single)
-articleRouter.patch(
-  "/:id/img-url",
-  isAdminOrStaff,
-  upload.single("imageURL"),
-  ArticleController.updateArticleImageUrlById
-);
+// ========== FAVORITE ROUTES ==========
+favoriteRouter.get("/", FavoriteController.getFavorites);
+favoriteRouter.post("/", FavoriteController.addFavorite);
+favoriteRouter.delete("/:movieId", FavoriteController.removeFavorite);
 
-// ========== CATEGORY ROUTES ==========
-categoryRouter.get("/", CategoryController.getCategory);
-categoryRouter.post("/", CategoryController.createCategory);
-categoryRouter.put("/:id", CategoryController.updateCategoryById);
+// ========== RECOMMENDATION ROUTES ==========
+recommendationRouter.post("/", RecommendationController.getRecommendations);
 
 // ========== PUBLIC ROUTES ==========
-pubRouter.get("/movies", PubController.getArticle);
-pubRouter.get("/genres", PubController.getCategory);
-pubRouter.get("/movies/:id", PubController.getArticleById);
+pubRouter.get("/movies", PubController.getMovies);
+pubRouter.get("/movies/:id", PubController.getMovieById);
+pubRouter.get("/genres", PubController.getGenres);
 
-app.use("/movies", articleRouter);
-app.use("/genres", categoryRouter);
+// ========== USER PROFILE ROUTES ==========
+app.get("/profile", authentication, UserController.getProfile);
+app.put("/profile", authentication, UserController.updateProfile);
+
+// ========== MOUNT ROUTERS ==========
+app.use("/movies", movieRouter);
+app.use("/favorites", favoriteRouter);
+app.use("/recommendations", recommendationRouter);
 app.use("/pub", pubRouter);
 
-//disini pasang errorHandler nya paling bawah sebelum port
+// ========== ERROR HANDLER ==========
 app.use(errorHandler);
 
 module.exports = app;

@@ -1,10 +1,9 @@
-const { Movie, User, Favorite } = require('../models');
+const { Movie } = require('../models');
 const { Op } = require('sequelize');
 
-module.exports = class MovieController {
+module.exports = class PubController {
   static async getMovies(req, res, next) {
     try {
-      const userId = req.user.id;
       const { search, genre, sort, page } = req.query;
 
       const where = {};
@@ -24,14 +23,6 @@ module.exports = class MovieController {
 
       const options = {
         where,
-        include: [
-          {
-            model: Favorite,
-            where: { userId },
-            required: false, // LEFT JOIN to show all movies
-            attributes: ['id']
-          }
-        ],
         attributes: [
           'id', 'title', 'overview', 'posterPath',
           'releaseDate', 'rating', 'genre'
@@ -48,7 +39,7 @@ module.exports = class MovieController {
           options.order = [[columnName, ordering]];
         }
       } else {
-        options.order = [['releaseDate', 'DESC']]; // Default sort by newest
+        options.order = [['rating', 'DESC']]; // Default sort by highest rated
       }
 
       // Pagination
@@ -59,18 +50,10 @@ module.exports = class MovieController {
 
       const { count, rows } = await Movie.findAndCountAll(options);
 
-      // Add isFavorite flag to each movie
-      const moviesWithFavoriteFlag = rows.map(movie => {
-        const movieData = movie.toJSON();
-        movieData.isFavorite = movie.Favorites && movie.Favorites.length > 0;
-        delete movieData.Favorites;
-        return movieData;
-      });
-
       res.json({
         message: "Movies retrieved successfully",
         data: {
-          movies: moviesWithFavoriteFlag,
+          movies: rows,
           pagination: {
             currentPage: pageNumber,
             totalPages: Math.ceil(count / limit),
@@ -87,16 +70,11 @@ module.exports = class MovieController {
   static async getMovieById(req, res, next) {
     try {
       const movieId = parseInt(req.params.id);
-      const userId = req.user.id;
 
       const movie = await Movie.findByPk(movieId, {
-        include: [
-          {
-            model: Favorite,
-            where: { userId },
-            required: false,
-            attributes: ['id']
-          }
+        attributes: [
+          'id', 'title', 'overview', 'posterPath',
+          'releaseDate', 'rating', 'genre'
         ]
       });
 
@@ -104,13 +82,9 @@ module.exports = class MovieController {
         throw { name: "NotFound", message: `Movie with id ${movieId} not found` };
       }
 
-      const movieData = movie.toJSON();
-      movieData.isFavorite = movie.Favorites && movie.Favorites.length > 0;
-      delete movieData.Favorites;
-
       res.json({
         message: "Movie retrieved successfully",
-        data: movieData
+        data: movie
       });
     } catch (err) {
       next(err);
@@ -136,6 +110,60 @@ module.exports = class MovieController {
       res.json({
         message: "Genres retrieved successfully",
         data: genreList
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getFeaturedMovies(req, res, next) {
+    try {
+      // Get top-rated movies as featured
+      const featuredMovies = await Movie.findAll({
+        where: {
+          rating: { [Op.gte]: 7.5 } // Movies with rating >= 7.5
+        },
+        order: [['rating', 'DESC']],
+        limit: 10,
+        attributes: [
+          'id', 'title', 'overview', 'posterPath',
+          'releaseDate', 'rating', 'genre'
+        ]
+      });
+
+      res.json({
+        message: "Featured movies retrieved successfully",
+        data: featuredMovies
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getMoviesByGenre(req, res, next) {
+    try {
+      const { genre } = req.params;
+      const { limit = 10 } = req.query;
+
+      const movies = await Movie.findAll({
+        where: {
+          genre: { [Op.iLike]: `%${genre}%` }
+        },
+        order: [['rating', 'DESC']],
+        limit: parseInt(limit),
+        attributes: [
+          'id', 'title', 'overview', 'posterPath',
+          'releaseDate', 'rating', 'genre'
+        ]
+      });
+
+      res.json({
+        message: `${genre} movies retrieved successfully`,
+        data: {
+          genre,
+          movies,
+          count: movies.length
+        }
       });
     } catch (err) {
       next(err);
