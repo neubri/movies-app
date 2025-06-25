@@ -1,0 +1,72 @@
+'use strict';
+
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Recommendations', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      userId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Users',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
+      movieId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Movies',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
+      genre: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      score: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+        comment: 'AI confidence score for this recommendation'
+      },
+      reason: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+        comment: 'AI-generated reason for recommendation'
+      },
+      isViewed: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+      }
+    });
+
+    // Add indexes
+    await queryInterface.addIndex('Recommendations', ['userId']);
+    await queryInterface.addIndex('Recommendations', ['movieId']);
+    await queryInterface.addIndex('Recommendations', ['genre']);
+    await queryInterface.addIndex('Recommendations', ['createdAt']);
+  },
+
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Recommendations');
+  }
+};
