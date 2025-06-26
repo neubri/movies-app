@@ -4,95 +4,61 @@ if (process.env.NODE_ENV !== "production") {
 
 const cors = require("cors");
 const express = require("express");
-const multer = require("multer");
 
 const UserController = require("./controllers/UserController");
-const MovieController = require("./controllers/MovieController");
-const FavoriteController = require("./controllers/FavoriteController");
-const RecommendationController = require("./controllers/RecommendationController");
-const PubController = require("./controllers/PubController");
+const MoviesController = require("./controllers/MoviesController");
+const FavoriteController = require("./controllers/FavoritesController");
 const errorHandler = require("./middlewares/errorHandler");
 const authentication = require("./middlewares/authentication");
+const PubController = require("./controllers/PubController");
 
 const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Test endpoint
-app.get("/", (req, res) => {
-  res.json({
-    message: "AI Movie Recommender API",
-    version: "1.0.0",
-    endpoints: {
-      public: [
-        "GET /",
-        "POST /register",
-        "POST /login",
-        "POST /google-login",
-        "GET /pub/movies",
-        "GET /pub/movies/:id",
-        "GET /pub/genres"
-      ],
-      authenticated: [
-        "GET /movies",
-        "GET /movies/:id",
-        "POST /favorites",
-        "DELETE /favorites/:movieId",
-        "GET /favorites",
-        "POST /recommendations",
-        "GET /profile"
-      ]
-    }
-  });
-});
-
 // ========== AUTH ROUTES ==========
-app.post("/register", UserController.register);
+//users endpoints
+//ini bukan dari router jadi authentikasi nya masukin manual
 app.post("/login", UserController.login);
-app.post("/google-login", UserController.googleLogin);
+app.post("/register", authentication, UserController.register);
 
-// ========== SETUP ROUTERS ==========
-const movieRouter = express.Router();
+// ========== SETUP ==========
+const moviesRouter = express.Router();
 const favoriteRouter = express.Router();
-const recommendationRouter = express.Router();
 const pubRouter = express.Router();
 
 // ========== MIDDLEWARE ==========
-movieRouter.use(authentication);
-favoriteRouter.use(authentication);
-recommendationRouter.use(authentication);
+//pasang middleware di router article
+moviesRouter.use(authentication);
+// categoryRouter.use(authentication);
 
 // ========== MOVIE ROUTES ==========
-movieRouter.get("/", MovieController.getMovies);
-movieRouter.get("/:id", MovieController.getMovieById);
+moviesRouter.get("/", MoviesController.getMovies);
+moviesRouter.post("/", MoviesController.createMovies);
+moviesRouter.get("/:id", MoviesController.getMoviesById);
+
+
+// ========== CATEGORY ROUTES ==========
+categoryRouter.get("/", categoryController.getCategory);
 
 // ========== FAVORITE ROUTES ==========
 favoriteRouter.get("/", FavoriteController.getFavorites);
-favoriteRouter.post("/", FavoriteController.addFavorite);
-favoriteRouter.delete("/:movieId", FavoriteController.removeFavorite);
-
-// ========== RECOMMENDATION ROUTES ==========
-recommendationRouter.post("/", RecommendationController.getRecommendations);
+favoriteRouter.post("/", FavoriteController.createFavorite);
+favoriteRouter.put("/:id", FavoriteController.updateFavoriteById);
+favoriteRouter.delete("/:id", FavoriteController.deleteFavoriteById);
 
 // ========== PUBLIC ROUTES ==========
 pubRouter.get("/movies", PubController.getMovies);
-pubRouter.get("/movies/:id", PubController.getMovieById);
-pubRouter.get("/genres", PubController.getGenres);
+pubRouter.get("/categories", PubController.getCategory);
+pubRouter.get("/movies/:id", PubController.getMoviesById);
 
-// ========== USER PROFILE ROUTES ==========
-app.get("/profile", authentication, UserController.getProfile);
-app.put("/profile", authentication, UserController.updateProfile);
-
-// ========== MOUNT ROUTERS ==========
-app.use("/movies", movieRouter);
+app.use("/movies", moviesRouter);
 app.use("/favorites", favoriteRouter);
-app.use("/recommendations", recommendationRouter);
 app.use("/pub", pubRouter);
 
-// ========== ERROR HANDLER ==========
+//disini pasang errorHandler nya paling bawah sebelum port
 app.use(errorHandler);
 
 module.exports = app;

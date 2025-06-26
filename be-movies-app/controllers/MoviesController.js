@@ -1,82 +1,90 @@
-const { Movie, User, Favorite } = require('../models');
+const { Movie, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 module.exports = class MovieController {
   static async getMovies(req, res, next) {
     try {
-      const userId = req.user.id;
-      const { search, genre, sort, page } = req.query;
+      const {
+        search,
+        filter,
+        sort,
+        minRating,
+        maxRating,
+        year
+      } = req.query;
 
       const where = {};
 
-      // Search functionality
-      if (search) {
-        where[Op.or] = [
-          { title: { [Op.iLike]: `%${search}%` } },
-          { overview: { [Op.iLike]: `%${search}%` } }
-        ];
-      }
-
       // Filter by genre
-      if (genre) {
-        where.genre = { [Op.iLike]: `%${genre}%` };
+      if (filter) {
+        where.genres = {
+          [Op.contains]: [filter]
+        };
       }
 
-      const options = {
-        where,
-        include: [
-          {
-            model: Favorite,
-            where: { userId },
-            required: false, // LEFT JOIN to show all movies
-            attributes: ['id']
-          }
-        ],
-        attributes: [
-          'id', 'title', 'overview', 'posterPath',
-          'releaseDate', 'rating', 'genre'
-        ]
-      };
+      // Search by title
+      if (search) {
+        where.title = {
+          [Op.iLike]: `%${search}%`
+        };
+      }
+
+      // Filter by rating range
+      if (minRating || maxRating) {
+        where.voteAverage = {};
+        if (minRating) where.voteAverage[Op.gte] = parseFloat(minRating);
+        if (maxRating) where.voteAverage[Op.lte] = parseFloat(maxRating);
+      }
+
+      // Filter by year
+      if (year) {
+        where.releaseDate = {
+          [Op.between]: [`${year}-01-01`, `${year}-12-31`]
+        };
+      }
+
+      const paramsQuerySQL = { where };
 
       // Sorting
       if (sort) {
-        const ordering = sort.startsWith('-') ? 'DESC' : 'ASC';
-        const columnName = sort.startsWith('-') ? sort.slice(1) : sort;
-
-        const validSortColumns = ['title', 'releaseDate', 'rating'];
-        if (validSortColumns.includes(columnName)) {
-          options.order = [[columnName, ordering]];
-        }
+        const ordering = sort[0] === "-" ? "DESC" : "ASC";
+        const columnName = ordering === "DESC" ? sort.slice(1) : sort;
+        paramsQuerySQL.order = [[columnName, ordering]];
       } else {
-        options.order = [['releaseDate', 'DESC']]; // Default sort by newest
+        paramsQuerySQL.order = [['releaseDate', 'DESC']];
       }
 
+      // Default limit and page number
+      let limit = 20;
+      let pageNumber = 1;
+
       // Pagination
-      const limit = parseInt(page?.size) || 20;
-      const pageNumber = parseInt(page?.number) || 1;
-      options.limit = limit;
-      options.offset = limit * (pageNumber - 1);
+      if (req.query['page[size]']) {
+        limit = +req.query['page[size]'];
+      }
+      if (req.query['page[number]']) {
+        pageNumber = +req.query['page[number]'];
+      }
 
-      const { count, rows } = await Movie.findAndCountAll(options);
+      paramsQuerySQL.limit = limit;
+      paramsQuerySQL.offset = limit * (pageNumber - 1);
+      paramsQuerySQL.attributes = { exclude: ['createdAt', 'updatedAt'] };
 
-      // Add isFavorite flag to each movie
-      const moviesWithFavoriteFlag = rows.map(movie => {
-        const movieData = movie.toJSON();
-        movieData.isFavorite = movie.Favorites && movie.Favorites.length > 0;
-        delete movieData.Favorites;
-        return movieData;
-      });
+      const { count, rows } = await Movie.findAndCountAll(paramsQuerySQL);
 
       res.json({
-        message: "Movies retrieved successfully",
-        data: {
-          movies: moviesWithFavoriteFlag,
-          pagination: {
-            currentPage: pageNumber,
-            totalPages: Math.ceil(count / limit),
-            totalMovies: count,
-            moviesPerPage: limit
-          }
+        page: pageNumber,
+        movies: rows,
+        totalData: count,
+        totalPage: Math.ceil(count / limit),
+        dataPerPage: limit,
+        pagination: {
+          currentPage: pageNumber,
+          totalPages: Math.ceil(count / limit),
+          totalItems: count,
+          itemsPerPage: limit,
+          hasNextPage: pageNumber < Math.ceil(count / limit),
+          hasPreviousPage: pageNumber > 1
         }
       });
     } catch (err) {
@@ -86,32 +94,17 @@ module.exports = class MovieController {
 
   static async getMovieById(req, res, next) {
     try {
-      const movieId = parseInt(req.params.id);
-      const userId = req.user.id;
+      const movieId = +req.params.id;
 
       const movie = await Movie.findByPk(movieId, {
-        include: [
-          {
-            model: Favorite,
-            where: { userId },
-            required: false,
-            attributes: ['id']
-          }
-        ]
+        attributes: { exclude: ['createdAt', 'updatedAt'] }
       });
 
       if (!movie) {
         throw { name: "NotFound", message: `Movie with id ${movieId} not found` };
       }
 
-      const movieData = movie.toJSON();
-      movieData.isFavorite = movie.Favorites && movie.Favorites.length > 0;
-      delete movieData.Favorites;
-
-      res.json({
-        message: "Movie retrieved successfully",
-        data: movieData
-      });
+      res.json({ movie });
     } catch (err) {
       next(err);
     }
@@ -119,23 +112,41 @@ module.exports = class MovieController {
 
   static async getGenres(req, res, next) {
     try {
-      // Get unique genres from movies
-      const genres = await Movie.findAll({
-        attributes: ['genre'],
-        group: ['genre'],
-        order: [['genre', 'ASC']]
+      const movies = await Movie.findAll({
+        attributes: ['genres']
       });
 
-      const genreList = genres
-        .map(g => g.genre)
-        .filter(genre => genre && genre.trim() !== '')
-        .flatMap(genre => genre.split(',').map(g => g.trim()))
-        .filter((genre, index, arr) => arr.indexOf(genre) === index)
-        .sort();
+      const genreSet = new Set();
+      movies.forEach(movie => {
+        movie.genres.forEach(genre => {
+          genreSet.add(genre);
+        });
+      });
+
+      const genres = Array.from(genreSet).sort();
+      res.json({ genres });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getStats(req, res, next) {
+    try {
+      const totalMovies = await Movie.count();
+
+      const avgRating = await Movie.findAll({
+        attributes: [
+          [sequelize.fn('AVG', sequelize.col('voteAverage')), 'avgRating'],
+          [sequelize.fn('MIN', sequelize.col('releaseDate')), 'oldestMovie'],
+          [sequelize.fn('MAX', sequelize.col('releaseDate')), 'newestMovie']
+        ]
+      });
 
       res.json({
-        message: "Genres retrieved successfully",
-        data: genreList
+        totalMovies,
+        averageRating: parseFloat(avgRating[0].dataValues.avgRating).toFixed(2),
+        oldestMovieDate: avgRating[0].dataValues.oldestMovie,
+        newestMovieDate: avgRating[0].dataValues.newestMovie
       });
     } catch (err) {
       next(err);

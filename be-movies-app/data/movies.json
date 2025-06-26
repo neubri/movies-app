@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "tmdbId": 12345,
+    "title": "Test Action Movie",
+    "overview": "A great action movie for testing",
+    "releaseDate": "2023-01-15",
+    "posterPath": "/test-poster.jpg",
+    "backdropPath": "/test-backdrop.jpg",
+    "voteAverage": 8.5,
+    "voteCount": 1000,
+    "genres": ["Action", "Adventure"],
+    "runtime": 120
+  },
+  {
+    "id": 2,
+    "tmdbId": 12346,
+    "title": "Test Comedy Movie",
+    "overview": "A hilarious comedy for testing",
+    "releaseDate": "2023-02-20",
+    "posterPath": "/test-comedy-poster.jpg",
+    "backdropPath": "/test-comedy-backdrop.jpg",
+    "voteAverage": 7.2,
+    "voteCount": 800,
+    "genres": ["Comedy", "Romance"],
+    "runtime": 95
+  },
+  {
+    "id": 3,
+    "tmdbId": 12347,
+    "title": "Test Drama Movie",
+    "overview": "An emotional drama for testing",
+    "releaseDate": "2023-03-10",
+    "posterPath": "/test-drama-poster.jpg",
+    "backdropPath": "/test-drama-backdrop.jpg",
+    "voteAverage": 9.1,
+    "voteCount": 1500,
+    "genres": ["Drama", "Thriller"],
+    "runtime": 135
+  }
+]

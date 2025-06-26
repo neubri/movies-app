@@ -2,14 +2,14 @@
   "development": {
     "username": "postgres",
     "password": "postgres",
-    "database": "movies-app",
+    "database": "h84_dev",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
   "test": {
     "username": "postgres",
     "password": "postgres",
-    "database": "movies-app-test",
+    "database": "h84_test",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },

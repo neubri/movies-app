@@ -1,170 +1,92 @@
-const { Movie } = require('../models');
-const { Op } = require('sequelize');
+const { Article, Category } = require("../models");
+const { Op } = require('sequelize')
 
 module.exports = class PubController {
-  static async getMovies(req, res, next) {
+
+  static async getArticle(req, res, next) {
     try {
-      const { search, genre, sort, page } = req.query;
+      console.log(req.query);
+      const { search, filter, sort } = req.query;
 
-      const where = {};
+      const where = {}; // Inisialisasi object kosong
 
-      // Search functionality
+      // Filtering
+      if (filter) {
+        where.categoryId = filter;
+      }
+
+      // Searching
       if (search) {
-        where[Op.or] = [
-          { title: { [Op.iLike]: `%${search}%` } },
-          { overview: { [Op.iLike]: `%${search}%` } }
-        ];
+        where.title = {
+          [Op.iLike]: `%${search}%`
+        };
       }
 
-      // Filter by genre
-      if (genre) {
-        where.genre = { [Op.iLike]: `%${genre}%` };
-      }
+      const paramsQuerySQL = { where };
 
-      const options = {
-        where,
-        attributes: [
-          'id', 'title', 'overview', 'posterPath',
-          'releaseDate', 'rating', 'genre'
-        ]
-      };
+
 
       // Sorting
       if (sort) {
-        const ordering = sort.startsWith('-') ? 'DESC' : 'ASC';
-        const columnName = sort.startsWith('-') ? sort.slice(1) : sort;
-
-        const validSortColumns = ['title', 'releaseDate', 'rating'];
-        if (validSortColumns.includes(columnName)) {
-          options.order = [[columnName, ordering]];
-        }
-      } else {
-        options.order = [['rating', 'DESC']]; // Default sort by highest rated
+        const ordering = sort[0] === "-" ? "DESC" : "ASC";
+        const columnName = ordering === "DESC" ? sort.slice(1) : sort;
+        paramsQuerySQL.order = [[columnName, ordering]];
       }
+
+      // Default limit and page number
+      let limit = 10; // Default limit
+      let pageNumber = 1;
 
       // Pagination
-      const limit = parseInt(page?.size) || 20;
-      const pageNumber = parseInt(page?.number) || 1;
-      options.limit = limit;
-      options.offset = limit * (pageNumber - 1);
+      if (req.query['page[size]']) {
+        limit = +req.query['page[size]'];
+      }
+      paramsQuerySQL.limit = limit; // Apply the limit to the query
 
-      const { count, rows } = await Movie.findAndCountAll(options);
+      if (req.query['page[number]']) {
+        pageNumber = +req.query['page[number]'];
+      }
+      paramsQuerySQL.offset = limit * (pageNumber - 1); // Apply the offset to the query
+
+      const { count, rows } = await Article.findAndCountAll(paramsQuerySQL);
 
       res.json({
-        message: "Movies retrieved successfully",
-        data: {
-          movies: rows,
-          pagination: {
-            currentPage: pageNumber,
-            totalPages: Math.ceil(count / limit),
-            totalMovies: count,
-            moviesPerPage: limit
-          }
-        }
+        page: pageNumber,
+        data: rows,
+        totalData: count,
+        totalPage: Math.ceil(count / limit),
+        dataPerPage: limit
       });
+
     } catch (err) {
       next(err);
     }
   }
 
-  static async getMovieById(req, res, next) {
+  static async getCategory(req, res, next) {
     try {
-      const movieId = parseInt(req.params.id);
+      const category = await Category.findAll()
 
-      const movie = await Movie.findByPk(movieId, {
-        attributes: [
-          'id', 'title', 'overview', 'posterPath',
-          'releaseDate', 'rating', 'genre'
-        ]
-      });
+      res.json(category)
+    } catch (err) {
+      next(err)
+    }
+  }
 
-      if (!movie) {
-        throw { name: "NotFound", message: `Movie with id ${movieId} not found` };
+  static async getArticleById(req, res, next) {
+    try {
+      const articleId = +req.params.id;
+
+      const article = await Article.findByPk(articleId);
+
+      if (!article) {
+        throw {
+          name: `NotFound`,
+          message: `Movies with id ${articleId} not found`,
+        };
       }
 
-      res.json({
-        message: "Movie retrieved successfully",
-        data: movie
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  static async getGenres(req, res, next) {
-    try {
-      // Get unique genres from movies
-      const genres = await Movie.findAll({
-        attributes: ['genre'],
-        group: ['genre'],
-        order: [['genre', 'ASC']]
-      });
-
-      const genreList = genres
-        .map(g => g.genre)
-        .filter(genre => genre && genre.trim() !== '')
-        .flatMap(genre => genre.split(',').map(g => g.trim()))
-        .filter((genre, index, arr) => arr.indexOf(genre) === index)
-        .sort();
-
-      res.json({
-        message: "Genres retrieved successfully",
-        data: genreList
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  static async getFeaturedMovies(req, res, next) {
-    try {
-      // Get top-rated movies as featured
-      const featuredMovies = await Movie.findAll({
-        where: {
-          rating: { [Op.gte]: 7.5 } // Movies with rating >= 7.5
-        },
-        order: [['rating', 'DESC']],
-        limit: 10,
-        attributes: [
-          'id', 'title', 'overview', 'posterPath',
-          'releaseDate', 'rating', 'genre'
-        ]
-      });
-
-      res.json({
-        message: "Featured movies retrieved successfully",
-        data: featuredMovies
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  static async getMoviesByGenre(req, res, next) {
-    try {
-      const { genre } = req.params;
-      const { limit = 10 } = req.query;
-
-      const movies = await Movie.findAll({
-        where: {
-          genre: { [Op.iLike]: `%${genre}%` }
-        },
-        order: [['rating', 'DESC']],
-        limit: parseInt(limit),
-        attributes: [
-          'id', 'title', 'overview', 'posterPath',
-          'releaseDate', 'rating', 'genre'
-        ]
-      });
-
-      res.json({
-        message: `${genre} movies retrieved successfully`,
-        data: {
-          genre,
-          movies,
-          count: movies.length
-        }
-      });
+      res.json(article);
     } catch (err) {
       next(err);
     }

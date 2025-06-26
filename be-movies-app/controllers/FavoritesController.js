@@ -4,34 +4,76 @@ module.exports = class FavoriteController {
   static async getFavorites(req, res, next) {
     try {
       const userId = req.user.id;
+      const { sort } = req.query;
 
-      const favorites = await Favorite.findAll({
-        where: { userId },
-        include: [
-          {
-            model: Movie,
-            attributes: [
-              'id', 'title', 'overview', 'posterPath',
-              'releaseDate', 'rating', 'genre'
-            ]
-          }
-        ],
-        order: [['createdAt', 'DESC']]
+      // Default limit and page number
+      let limit = 20;
+      let pageNumber = 1;
+
+      // Pagination
+      if (req.query['page[size]']) {
+        limit = +req.query['page[size]'];
+      }
+      if (req.query['page[number]']) {
+        pageNumber = +req.query['page[number]'];
+      }
+ 
+      const offset = limit * (pageNumber - 1);
+
+      const user = await User.findByPk(userId, {
+        include: [{
+          model: Movie,
+          as: 'favoriteMovies',
+          through: {
+            attributes: ['createdAt']
+          },
+          attributes: { exclude: ['createdAt', 'updatedAt'] }
+        }]
       });
 
-      const favoriteMovies = favorites.map(favorite => {
-        const movie = favorite.Movie.toJSON();
-        movie.favoriteId = favorite.id;
-        movie.addedAt = favorite.createdAt;
-        movie.isFavorite = true;
-        return movie;
-      });
+      if (!user) {
+        throw { name: "NotFound", message: "User not found" };
+      }
+
+      // Sort movies
+      let movies = user.favoriteMovies;
+
+      if (sort) {
+        const ordering = sort[0] === "-" ? "DESC" : "ASC";
+        const columnName = ordering === "DESC" ? sort.slice(1) : sort;
+
+        if (columnName === 'dateAdded') {
+          movies.sort((a, b) => {
+            const dateA = new Date(a.Favorite.createdAt);
+            const dateB = new Date(b.Favorite.createdAt);
+            return ordering === 'DESC' ? dateB - dateA : dateA - dateB;
+          });
+        } else if (columnName === 'title') {
+          movies.sort((a, b) => {
+            const comparison = a.title.localeCompare(b.title);
+            return ordering === 'DESC' ? -comparison : comparison;
+          });
+        }
+      }
+
+      // Paginate
+      const totalItems = movies.length;
+      const paginatedMovies = movies.slice(offset, offset + limit);
+      const totalPages = Math.ceil(totalItems / limit);
 
       res.json({
-        message: "Favorite movies retrieved successfully",
-        data: {
-          favorites: favoriteMovies,
-          count: favoriteMovies.length
+        page: pageNumber,
+        favorites: paginatedMovies,
+        totalData: totalItems,
+        totalPage: totalPages,
+        dataPerPage: limit,
+        pagination: {
+          currentPage: pageNumber,
+          totalPages,
+          totalItems,
+          itemsPerPage: limit,
+          hasNextPage: pageNumber < totalPages,
+          hasPreviousPage: pageNumber > 1
         }
       });
     } catch (err) {
@@ -39,14 +81,10 @@ module.exports = class FavoriteController {
     }
   }
 
-  static async addFavorite(req, res, next) {
+  static async addToFavorites(req, res, next) {
     try {
+      const movieId = +req.params.movieId;
       const userId = req.user.id;
-      const { movieId } = req.body;
-
-      if (!movieId) {
-        throw { name: "BadRequest", message: "Movie ID is required" };
-      }
 
       // Check if movie exists
       const movie = await Movie.findByPk(movieId);
@@ -54,115 +92,77 @@ module.exports = class FavoriteController {
         throw { name: "NotFound", message: "Movie not found" };
       }
 
-      // Check if already in favorites
+      // Check if already favorited
       const existingFavorite = await Favorite.findOne({
         where: { userId, movieId }
       });
 
       if (existingFavorite) {
-        throw { name: "BadRequest", message: "Movie is already in favorites" };
+        throw { name: "BadRequest", message: "Movie already in favorites" };
       }
 
-      const favorite = await Favorite.create({
-        userId,
-        movieId
-      });
-
-      // Get the movie details for response
-      const movieWithFavorite = await Movie.findByPk(movieId);
-      const movieData = movieWithFavorite.toJSON();
-      movieData.favoriteId = favorite.id;
-      movieData.isFavorite = true;
-      movieData.addedAt = favorite.createdAt;
+      // Add to favorites
+      await Favorite.create({ userId, movieId });
 
       res.status(201).json({
-        message: "Movie added to favorites successfully",
-        data: movieData
+        message: 'Movie added to favorites',
+        movieId,
+        movieTitle: movie.title
       });
     } catch (err) {
       next(err);
     }
   }
 
-  static async removeFavorite(req, res, next) {
+  static async removeFromFavorites(req, res, next) {
     try {
+      const movieId = +req.params.movieId;
       const userId = req.user.id;
-      const movieId = parseInt(req.params.movieId);
-
-      if (!movieId) {
-        throw { name: "BadRequest", message: "Movie ID is required" };
-      }
 
       const favorite = await Favorite.findOne({
         where: { userId, movieId }
       });
 
       if (!favorite) {
-        throw { name: "NotFound", message: "Movie not found in favorites" };
+        throw { name: "NotFound", message: "Movie not in favorites" };
       }
 
       await favorite.destroy();
 
       res.json({
-        message: "Movie removed from favorites successfully",
-        data: {
-          movieId,
-          removedAt: new Date()
-        }
+        message: 'Movie removed from favorites',
+        movieId
       });
     } catch (err) {
       next(err);
     }
   }
 
-  static async toggleFavorite(req, res, next) {
+  static async checkFavoriteStatus(req, res, next) {
     try {
+      const movieId = +req.params.movieId;
       const userId = req.user.id;
-      const { movieId } = req.body;
 
-      if (!movieId) {
-        throw { name: "BadRequest", message: "Movie ID is required" };
-      }
-
-      // Check if movie exists
-      const movie = await Movie.findByPk(movieId);
-      if (!movie) {
-        throw { name: "NotFound", message: "Movie not found" };
-      }
-
-      // Check if already in favorites
-      const existingFavorite = await Favorite.findOne({
+      const favorite = await Favorite.findOne({
         where: { userId, movieId }
       });
 
-      if (existingFavorite) {
-        // Remove from favorites
-        await existingFavorite.destroy();
+      res.json({
+        isFavorited: !!favorite,
+        movieId
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 
-        const movieData = movie.toJSON();
-        movieData.isFavorite = false;
+  static async getFavoritesCount(req, res, next) {
+    try {
+      const count = await Favorite.count({
+        where: { userId: req.user.id }
+      });
 
-        res.json({
-          message: "Movie removed from favorites",
-          data: movieData
-        });
-      } else {
-        // Add to favorites
-        const favorite = await Favorite.create({
-          userId,
-          movieId
-        });
-
-        const movieData = movie.toJSON();
-        movieData.favoriteId = favorite.id;
-        movieData.isFavorite = true;
-        movieData.addedAt = favorite.createdAt;
-
-        res.status(201).json({
-          message: "Movie added to favorites",
-          data: movieData
-        });
-      }
+      res.json({ count });
     } catch (err) {
       next(err);
     }

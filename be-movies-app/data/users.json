@@ -1,12 +1,23 @@
 [
   {
-    "email": "hathaway@gmail.com",
-    "password": "hathaway123",
-    "role": "Admin"
+    "id": 1,
+    "name": "Admin User",
+    "email": "admin@h84.com",
+    "password": "admin123456",
+    "favoriteGenre": "Action"
   },
   {
-    "email": "char@gmail.com",
-    "password": "char123",
-    "role": "Staff"
+    "id": 2,
+    "name": "Regular User",
+    "email": "user@h84.com",
+    "password": "user123456",
+    "favoriteGenre": "Comedy"
+  },
+  {
+    "id": 3,
+    "name": "Staff User",
+    "email": "staff@h84.com",
+    "password": "staff123456",
+    "favoriteGenre": "Drama"
   }
 ]

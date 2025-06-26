@@ -2,18 +2,17 @@ const { comparePassword } = require('../helpers/bcrypt')
 const { signToken } = require('../helpers/jwt')
 const { User } = require('../models')
 
-module.exports = class UsersController {
-  static async addUser(req, res, next) {
+module.exports = class UserController {
+  static async register(req, res, next) {
     try {
       //ambil data req.body lurr
-      const { email, password, phoneNumber, address } = req.body
+      const { email, password, genreFavorite } = req.body
 
       //create user baru lurr
       const user = await User.create({
         email,
         password,
-        phoneNumber,
-        address
+        genreFavorite,
       })
 
       //hapus password dari obj lurr
@@ -39,6 +38,9 @@ module.exports = class UsersController {
       }
       if (!password) {
         throw { name: "BadRequest", message: "Password is required" }
+      }
+      if (!genreFavorite) {
+        throw { name: "BadRequest", message: "Genre Favorite is required" }
       }
 
       // check emailnya ada beneran ga lurr?
