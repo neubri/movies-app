@@ -5,60 +5,35 @@ if (process.env.NODE_ENV !== "production") {
 const cors = require("cors");
 const express = require("express");
 
-const UserController = require("./controllers/UserController");
-const MoviesController = require("./controllers/MoviesController");
-const FavoriteController = require("./controllers/FavoritesController");
 const errorHandler = require("./middlewares/errorHandler");
 const authentication = require("./middlewares/authentication");
-const PubController = require("./controllers/PubController");
+const authController = require("./controllers/authController");
+const moviesController = require("./controllers/MoviesController");
 
 const app = express();
 
 app.use(cors());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// ========== AUTH ROUTES ==========
-//users endpoints
-//ini bukan dari router jadi authentikasi nya masukin manual
-app.post("/login", UserController.login);
-app.post("/register", authentication, UserController.register);
+//auth
+app.post("/register", authController.register);
+app.post("/login", authController.login);
 
-// ========== SETUP ==========
-const moviesRouter = express.Router();
-const favoriteRouter = express.Router();
-const pubRouter = express.Router();
+//movies
+app.get("/movies", moviesController.getMovies);
+// app.get("/movies/:id", moviesController.getMoviesById);
 
-// ========== MIDDLEWARE ==========
-//pasang middleware di router article
-moviesRouter.use(authentication);
-// categoryRouter.use(authentication);
+// //userMovies
+// app.get("/user-movies", authentication, moviesController.getUserMovies);
+// app.post("/user-movies", authentication, moviesController.addUserMovie);
+// app.delete("/user-movies/:id", authentication, moviesController.deleteUserMovie);
+// app.patch("/user-movies/:id", authentication, moviesController.updateUserMovie);
 
-// ========== MOVIE ROUTES ==========
-moviesRouter.get("/", MoviesController.getMovies);
-moviesRouter.post("/", MoviesController.createMovies);
-moviesRouter.get("/:id", MoviesController.getMoviesById);
+// //recomendations
+// app.get("/recommendations", authentication, moviesController.getRecommendations);
+// app.get("/recommendations/cache", authentication, moviesController.getRecommendedGenres);
 
-
-// ========== CATEGORY ROUTES ==========
-categoryRouter.get("/", categoryController.getCategory);
-
-// ========== FAVORITE ROUTES ==========
-favoriteRouter.get("/", FavoriteController.getFavorites);
-favoriteRouter.post("/", FavoriteController.createFavorite);
-favoriteRouter.put("/:id", FavoriteController.updateFavoriteById);
-favoriteRouter.delete("/:id", FavoriteController.deleteFavoriteById);
-
-// ========== PUBLIC ROUTES ==========
-pubRouter.get("/movies", PubController.getMovies);
-pubRouter.get("/categories", PubController.getCategory);
-pubRouter.get("/movies/:id", PubController.getMoviesById);
-
-app.use("/movies", moviesRouter);
-app.use("/favorites", favoriteRouter);
-app.use("/pub", pubRouter);
-
-//disini pasang errorHandler nya paling bawah sebelum port
 app.use(errorHandler);
 
 module.exports = app;

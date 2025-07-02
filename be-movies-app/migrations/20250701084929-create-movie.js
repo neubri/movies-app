@@ -18,26 +18,14 @@ module.exports = {
       overview: {
         type: Sequelize.TEXT
       },
-      releaseDate: {
-        type: Sequelize.DATEONLY
-      },
       posterPath: {
         type: Sequelize.STRING
       },
-      backdropPath: {
+      releaseDate: {
+        type: Sequelize.DATE
+      },
+      genreIds: {
         type: Sequelize.STRING
-      },
-      voteAverage: {
-        type: Sequelize.FLOAT
-      },
-      voteCount: {
-        type: Sequelize.INTEGER
-      },
-      genres: {
-        type: Sequelize.JSON
-      },
-      runtime: {
-        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,

@@ -1,23 +1,14 @@
 [
   {
-    "id": 1,
-    "name": "Admin User",
-    "email": "admin@h84.com",
-    "password": "admin123456",
-    "favoriteGenre": "Action"
+    "username": "admin",
+    "email": "admin@gmail.com",
+    "password": "admin123",
+    "preferredGenres": "Action"
   },
   {
-    "id": 2,
-    "name": "Regular User",
-    "email": "user@h84.com",
-    "password": "user123456",
-    "favoriteGenre": "Comedy"
-  },
-  {
-    "id": 3,
-    "name": "Staff User",
-    "email": "staff@h84.com",
-    "password": "staff123456",
-    "favoriteGenre": "Drama"
+    "username": "user",
+    "email": "user@gmail.com",
+    "password": "user123",
+    "preferredGenres": "Comedy"
   }
 ]

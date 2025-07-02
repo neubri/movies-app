@@ -2,18 +2,22 @@
   "development": {
     "username": "postgres",
     "password": "postgres",
-    "database": "h84_dev",
+    "database": "movies-app-ip",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
   "test": {
     "username": "postgres",
     "password": "postgres",
-    "database": "h84_test",
+    "database": "movies-app-ip-test",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
   "production": {
-    "use_env_variable": "DATABASE_URL"
+    "username": "root",
+    "password": null,
+    "database": "database_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
   }
 }
