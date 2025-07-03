@@ -11,30 +11,39 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      UserRecommendations.belongsTo(models.User);
-      UserRecommendations.belongsTo(models.Movie);
+      UserRecommendations.belongsTo(models.User, {
+        foreignKey: 'userId',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      });
+      UserRecommendations.belongsTo(models.Movie, {
+        foreignKey: 'movieId',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      });
     }
   }
   UserRecommendations.init({
     userId: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
         model: 'Users',
         key: 'id'
-      },
-      onUpdate: 'cascade',
-      onDelete: 'cascade'
+      }
     },
     movieId: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
         model: 'Movies',
         key: 'id'
-      },
-      onUpdate: 'cascade',
-      onDelete: 'cascade'
+      }
     },
-    reason: DataTypes.TEXT
+    reason: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    }
   }, {
     sequelize,
     modelName: 'UserRecommendations',

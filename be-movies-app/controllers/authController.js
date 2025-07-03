@@ -1,6 +1,8 @@
 const { User } = require("../models/index");
-const { comparePassword  } = require("../helpers/bcrypt");
+const { comparePassword, hashPassword } = require("../helpers/bcrypt");
 const { signToken } = require("../helpers/jwt");
+const { OAuth2Client } = require('google-auth-library');
+const crypto = require('crypto');
 
 class authController {
   static async register(req, res, next) {
@@ -64,6 +66,75 @@ class authController {
 
       res.status(200).json({ access_token, user: cleanUser });
     } catch (error) {
+      next(error);
+    }
+  }
+
+  static async googleLogin(req, res, next) {
+    try {
+      const { id_token } = req.body;
+
+      if (!id_token) {
+        throw { name: "BadRequest", message: "Google ID token is required" };
+      }
+
+      const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+      // Verify the token
+      const ticket = await client.verifyIdToken({
+        idToken: id_token,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
+
+      const payload = ticket.getPayload();
+
+      // Find or create user
+      let user = await User.findOne({
+        where: { email: payload.email }
+      });
+
+      if (!user) {
+        // Generate random password (they'll never use it since they're using Google login)
+        const randomPassword = crypto.randomBytes(32).toString('hex');
+
+        // Create username from email (remove @domain.com and add random numbers if needed)
+        let username = payload.email.split('@')[0];
+        const existingUser = await User.findOne({ where: { username } });
+        if (existingUser) {
+          username = `${username}${Math.floor(Math.random() * 10000)}`;
+        }
+
+        // Create new user with Google data
+        user = await User.create({
+          email: payload.email,
+          username,
+          password: randomPassword, // This will be hashed by the User model hook
+          preferredGenres: null // They can set this later
+        }, {
+          hooks: false // Skip password hashing since we're using Google auth
+        });
+      }
+
+      // Generate JWT token
+      const access_token = signToken({ id: user.id });
+
+      // Clean user object
+      const cleanUser = user.toJSON();
+      delete cleanUser.password;
+      delete cleanUser.createdAt;
+      delete cleanUser.updatedAt;
+      delete cleanUser.id;
+
+      res.status(200).json({
+        access_token,
+        user: cleanUser,
+        message: "Google login successful"
+      });
+
+    } catch (error) {
+      if (error.name === 'Error' && error.message.includes('Token used too late')) {
+        error = { name: "BadRequest", message: "Invalid or expired Google token" };
+      }
       next(error);
     }
   }

@@ -21,6 +21,9 @@ function errorHandler(error, req, res, next) {
     case "Forbidden":
       res.status(403).json({ message: error.message });
       break;
+    case "InternalServerError":
+      res.status(500).json({ message: error.message });
+      break;
     default:
       res.status(500).json({ message: "Internal Server Error" });
       break;

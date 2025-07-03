@@ -12,8 +12,16 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      User.hasMany(models.UserMovies);
-      User.hasMany(models.UserRecommendations);
+      User.hasMany(models.UserMovies, {
+        foreignKey: 'userId',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      });
+      User.hasMany(models.UserRecommendations, {
+        foreignKey: 'userId',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      });
     }
   }
   User.init({
@@ -59,7 +67,11 @@ module.exports = (sequelize, DataTypes) => {
         },
         notNull: {
           msg: 'Password is required'
-        }
+        },
+        len: {
+          args: [8, 100],
+          msg: "Password must be at least 8 characters",
+        },
       }
     },
     preferredGenres: {

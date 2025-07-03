@@ -4,9 +4,8 @@
   "description": "H84 Movie App Backend",
   "main": "app.js",
   "scripts": {
-    "start": "node bin/www",
     "dev": "npx nodemon bin/www",
-    "test": "jest --detectOpenHandles --verbose --forceExit --runInBand",
+    "test": "jest --detectOpenHandles --verbose --forceExit --runInBand --coverage",
     "seed": "node scripts/seed.js"
   },
   "dependencies": {
@@ -20,6 +19,7 @@
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "express-validator": "^7.2.1",
+    "google-auth-library": "^10.1.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.2",
     "sequelize": "^6.37.7"
