@@ -6,106 +6,162 @@ class MoviesController {
   static async getMovies(req, res, next) {
     try {
       console.log("Query params:", req.query);
-      const { search, filter, sort } = req.query;
+      const { search, title, filter, genre, sort, page, limit: queryLimit } = req.query;
 
-      // Default limit and page number
-      let limit = 10;
-      let pageNumber = 1;
+      // Parse and validate pagination parameters
+      let limit = 10; // default
+      let pageNumber = 1; // default
 
-      // Parse pagination parameters - support both formats
-      // Format 1: page[size]=5&page[number]=2
-      if (req.query['page[size]']) {
-        const parsedSize = Number(req.query['page[size]']);
-        if (!isNaN(parsedSize) && parsedSize > 0) {
+      // Handle limit parameter (support multiple formats)
+      if (queryLimit) {
+        const parsedLimit = parseInt(queryLimit);
+        if (!isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= 100) {
+          limit = parsedLimit;
+        }
+      } else if (req.query['page[size]']) {
+        // Handle page[size] format used in tests
+        const parsedSize = parseInt(req.query['page[size]']);
+        if (!isNaN(parsedSize) && parsedSize > 0 && parsedSize <= 100) {
+          limit = parsedSize;
+        }
+      } else if (page && typeof page === 'object' && page.size) {
+        // Handle nested page object
+        const parsedSize = parseInt(page.size);
+        if (!isNaN(parsedSize) && parsedSize > 0 && parsedSize <= 100) {
           limit = parsedSize;
         }
       }
 
-      if (req.query['page[number]']) {
-        const parsedPage = Number(req.query['page[number]']);
+      // Handle page parameter (support multiple formats)
+      if (page && typeof page === 'number') {
+        // Direct page number
+        if (page > 0) {
+          pageNumber = page;
+        }
+      } else if (page && typeof page === 'string') {
+        // String page number
+        const parsedPage = parseInt(page);
+        if (!isNaN(parsedPage) && parsedPage > 0) {
+          pageNumber = parsedPage;
+        }
+      } else if (req.query['page[number]']) {
+        // Handle page[number] format used in tests
+        const parsedPageNum = parseInt(req.query['page[number]']);
+        if (!isNaN(parsedPageNum) && parsedPageNum > 0) {
+          pageNumber = parsedPageNum;
+        }
+      } else if (page && typeof page === 'object' && page.number) {
+        // Handle nested page object
+        const parsedPage = parseInt(page.number);
         if (!isNaN(parsedPage) && parsedPage > 0) {
           pageNumber = parsedPage;
         }
       }
 
-      // Format 2: page.size=5&page.number=2
-      if (req.query['page.size']) {
-        const parsedSize = Number(req.query['page.size']);
-        if (!isNaN(parsedSize) && parsedSize > 0) {
-          limit = parsedSize;
-        }
-      }
-
-      if (req.query['page.number']) {
-        const parsedPage = Number(req.query['page.number']);
-        if (!isNaN(parsedPage) && parsedPage > 0) {
-          pageNumber = parsedPage;
-        }
-      }
-
-      // Format 3: Direct page object (for tests using supertest)
-      if (req.query.page) {
-        if (req.query.page.size) {
-          const parsedSize = Number(req.query.page.size);
-          if (!isNaN(parsedSize) && parsedSize > 0) {
-            limit = parsedSize;
-          }
-        }
-        if (req.query.page.number) {
-          const parsedPage = Number(req.query.page.number);
-          if (!isNaN(parsedPage) && parsedPage > 0) {
-            pageNumber = parsedPage;
-          }
-        }
-      }
-
+      // Build where clause for filtering
       const where = {};
 
-      // Handle search
-      if (search) {
+      // Handle search (search in title field)
+      const searchQuery = search || title;
+      if (searchQuery && typeof searchQuery === 'string' && searchQuery.trim()) {
         where.title = {
-          [Op.iLike]: `%${search}%`
+          [Op.iLike]: `%${searchQuery.trim()}%`
         };
       }
 
-      // Handle filter by genre
-      if (filter) {
-        where.genreIds = {
-          [Op.like]: `%${filter}%`
-        };
+      // Handle genre filter (support both 'filter' and 'genre' parameters)
+      const genreFilter = filter || genre;
+      if (genreFilter && typeof genreFilter === 'string' && genreFilter.trim()) {
+        // Handle both genre name and genre ID filtering
+        const genreValue = genreFilter.trim();
+        if (/^\d+$/.test(genreValue)) {
+          // If it's a number, search in genreIds
+          where.genreIds = {
+            [Op.like]: `%${genreValue}%`
+          };
+        } else {
+          // If it's text, we might need to join with Genre table
+          // For now, still search in genreIds assuming it might contain genre names
+          where.genreIds = {
+            [Op.iLike]: `%${genreValue}%`
+          };
+        }
       }
 
-      // Calculate offset
-      const offset = limit * (pageNumber - 1);
+      // Calculate offset for pagination
+      const offset = Math.max(0, (pageNumber - 1) * limit);
 
-      const paramsQuerySQL = {
+      // Build query parameters
+      const queryParams = {
         where,
         limit,
         offset,
         distinct: true
       };
 
-      // Handle sorting
-      if (sort) {
-        const ordering = sort[0] === "-" ? "DESC" : "ASC";
-        const columnName = ordering === "DESC" ? sort.slice(1) : sort;
-        paramsQuerySQL.order = [[columnName, ordering]];
+      // Handle sorting with validation
+      if (sort && typeof sort === 'string') {
+        const sortParam = sort.trim();
+        let ordering = 'ASC';
+        let columnName = sortParam;
+
+        // Handle descending sort (prefix with -)
+        if (sortParam.startsWith('-')) {
+          ordering = 'DESC';
+          columnName = sortParam.slice(1);
+        }
+
+        // Handle colon format (e.g., 'releaseDate:desc')
+        if (sortParam.includes(':')) {
+          const [col, order] = sortParam.split(':');
+          columnName = col.trim();
+          ordering = order.trim().toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+        }
+
+        // Validate column name to prevent SQL injection
+        const allowedSortColumns = ['title', 'releaseDate', 'popularity', 'voteAverage', 'id', 'createdAt', 'updatedAt'];
+        if (allowedSortColumns.includes(columnName)) {
+          queryParams.order = [[columnName, ordering]];
+        } else {
+          // Default sort if invalid column
+          queryParams.order = [['title', 'ASC']];
+        }
       } else {
-        paramsQuerySQL.order = [['title', 'ASC']]; // default sort
+        // Default sorting
+        queryParams.order = [['title', 'ASC']];
       }
 
-      const { count, rows } = await Movie.findAndCountAll(paramsQuerySQL);
+      // Execute query
+      const { count, rows } = await Movie.findAndCountAll(queryParams);
 
-      // Format response
+      // Calculate pagination metadata
+      const totalPages = Math.ceil(count / limit);
+
+      // Format response with consistent structure
       res.status(200).json({
         statusCode: 200,
-        page: pageNumber,
         data: rows,
+        meta: {
+          pagination: {
+            page: pageNumber,
+            limit: limit,
+            total: count,
+            totalPages: totalPages
+          },
+          filters: {
+            search: searchQuery || null,
+            genre: genreFilter || null,
+            sort: sort || null
+          }
+        },
+        // Legacy fields for backward compatibility
+        page: pageNumber,
         totalData: count,
-        totalPage: Math.ceil(count / limit),
+        totalPage: totalPages,
         dataPerPage: limit
       });
     } catch (err) {
+      console.error('Error in getMovies:', err);
       next(err);
     }
   }
