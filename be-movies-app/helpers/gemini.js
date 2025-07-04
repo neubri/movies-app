@@ -50,22 +50,29 @@ Instructions:
     // Generate content with Gemini
     const result = await model.generateContent(prompt);
     const response = result.response;
-    const text = response.text().trim();
+    const text = response.text();
+
+    // Handle null or undefined response
+    if (!text) {
+      throw new Error('No response text from Gemini API');
+    }
+
+    const trimmedText = text.trim();
 
     // Parse the response
     let recommendedIds;
 
     try {
       // Try parsing as JSON array
-      recommendedIds = JSON.parse(text);
+      recommendedIds = JSON.parse(trimmedText);
     } catch (e) {
       // Try extracting array if embedded in text
-      const arrayMatch = text.match(/\[\s*(\d+\s*,\s*)*\d+\s*\]/);
+      const arrayMatch = trimmedText.match(/\[\s*(\d+\s*,\s*)*\d+\s*\]/);
       if (arrayMatch) {
         recommendedIds = JSON.parse(arrayMatch[0]);
       } else {
         // Extract numbers as last resort
-        recommendedIds = text.match(/\d+/g)?.map(Number) || [];
+        recommendedIds = trimmedText.match(/\d+/g)?.map(Number) || [];
       }
     }
 
