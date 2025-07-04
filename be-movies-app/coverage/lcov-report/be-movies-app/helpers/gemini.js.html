@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">97.43% </span>
+                <span class="strong">97.36% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>38/39</span>
+                <span class='fraction'>37/38</span>
             </div>
         
             
@@ -177,8 +177,7 @@
 <a name='L112'></a><a href='#L112'>112</a>
 <a name='L113'></a><a href='#L113'>113</a>
 <a name='L114'></a><a href='#L114'>114</a>
-<a name='L115'></a><a href='#L115'>115</a>
-<a name='L116'></a><a href='#L116'>116</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">6x</span>
+<a name='L115'></a><a href='#L115'>115</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -202,8 +201,6 @@
 <span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">74x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -217,7 +214,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">74x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -262,7 +261,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-yes">53x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">9x</span>
@@ -282,18 +283,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">18x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const { GoogleGenerativeAI } = require('@google/generative-ai');
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const { GoogleGenerativeAI } = require("@google/generative-ai");
 &nbsp;
 /**
  * Generates movie recommendations using Google Gemini AI
@@ -306,24 +304,22 @@ async function generateRecommendationIds(preferredGenreNames, movieList) {
     // Validate API key
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      throw new Error('GEMINI_API_KEY not found in environment variables');
+      throw new Error("GEMINI_API_KEY not found in environment variables");
     }
 &nbsp;
     // Initialize Gemini AI
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 &nbsp;
     // Format user preferences for prompt
-    const userPreferences = preferredGenreNames.join(', ');
+    const userPreferences = preferredGenreNames.join(", ");
 &nbsp;
     // Use a subset of movies to avoid token limits (take the most recent ones)
-    const contextMovies = movieList
-      .slice(0, 100)
-      .map(movie =&gt; ({
-        id: movie.id,
-        title: movie.title,
-        genreIds: movie.genreIds
-      }));
+    const contextMovies = movieList.slice(0, 100).map((movie) =&gt; ({
+      id: movie.id,
+      title: movie.title,
+      genreIds: movie.genreIds,
+    }));
 &nbsp;
     // Craft prompt for Gemini
     const prompt = `
@@ -332,7 +328,9 @@ As a movie recommendation system, your task is to select 6 movies that match a u
 User's preferred genres: ${userPreferences}
 &nbsp;
 Available movies (format: id | title | genreIds):
-${contextMovies.map(movie =&gt; `${movie.id} | ${movie.title} | ${movie.genreIds}`).join('\n')}
+${contextMovies
+  .map((movie) =&gt; `${movie.id} | ${movie.title} | ${movie.genreIds}`)
+  .join("\n")}
 &nbsp;
 Instructions:
 1. Choose exactly 6 movies that best match the user's preferred genres
@@ -349,7 +347,7 @@ Instructions:
 &nbsp;
     // Handle null or undefined response
     if (!text) {
-      throw new Error('No response text from Gemini API');
+      throw new Error("No response text from Gemini API");
     }
 &nbsp;
     const trimmedText = text.trim();
@@ -377,33 +375,32 @@ Instructions:
     }
 &nbsp;
     // Remove any non-numeric values
-    recommendedIds = recommendedIds.filter(id =&gt; typeof id === 'number' &amp;&amp; !isNaN(id));
+    recommendedIds = recommendedIds.filter(
+      (id) =&gt; typeof id === "number" &amp;&amp; !isNaN(id)
+    );
 &nbsp;
     // Ensure we have valid movie IDs that exist in our database
-    recommendedIds = recommendedIds.filter(id =&gt;
-      movieList.some(movie =&gt; movie.id === id)
+    recommendedIds = recommendedIds.filter((id) =&gt;
+      movieList.some((movie) =&gt; movie.id === id)
     );
 &nbsp;
     // If we don't have enough recommendations, add more movies
     if (recommendedIds.length &lt; 6) {
       const additionalIds = movieList
-        .filter(movie =&gt; !recommendedIds.includes(movie.id))
+        .filter((movie) =&gt; !recommendedIds.includes(movie.id))
         .slice(0, 6 - recommendedIds.length)
-        .map(movie =&gt; movie.id);
+        .map((movie) =&gt; movie.id);
 &nbsp;
       recommendedIds = [...recommendedIds, ...additionalIds];
     }
 &nbsp;
     // Return exactly 6 recommendations
     return recommendedIds.slice(0, 6);
-&nbsp;
   } catch (error) {
-    console.error('Gemini API Error:', error.message);
+    console.error("Gemini API Error:", error.message);
 &nbsp;
     // Fallback: return 6 first movies from the list
-    return movieList
-      .slice(0, 6)
-      .map(movie =&gt; movie.id);
+    return movieList.slice(0, 6).map((movie) =&gt; movie.id);
   }
 }
 &nbsp;
@@ -415,7 +412,7 @@ module.exports = { generateRecommendationIds };
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-07-04T01:59:43.987Z
+                at 2025-07-04T02:59:52.878Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

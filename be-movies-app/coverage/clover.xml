@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1751594384071" clover="3.2.0">
-  <project timestamp="1751594384071" name="All files">
-    <metrics statements="553" coveredstatements="508" conditionals="343" coveredconditionals="273" methods="77" coveredmethods="75" elements="973" coveredelements="856" complexity="0" loc="553" ncloc="553" packages="5" files="16" classes="16"/>
+<coverage generated="1751597992961" clover="3.2.0">
+  <project timestamp="1751597992961" name="All files">
+    <metrics statements="552" coveredstatements="507" conditionals="343" coveredconditionals="273" methods="77" coveredmethods="75" elements="972" coveredelements="855" complexity="0" loc="552" ncloc="552" packages="5" files="16" classes="16"/>
     <package name="be-movies-app">
       <metrics statements="32" coveredstatements="32" conditionals="2" coveredconditionals="1" methods="0" coveredmethods="0"/>
       <file name="app.js" path="C:\Users\neubr\Documents\hacktiv8\phase2\IndividualProject\movies-app\be-movies-app\app.js">
@@ -42,71 +42,7 @@
     </package>
     <package name="be-movies-app.controllers">
       <metrics statements="378" coveredstatements="339" conditionals="300" coveredconditionals="239" methods="48" coveredmethods="46"/>
-      <file name="authController.js" path="C:\Users\neubr\Documents\hacktiv8\phase2\IndividualProject\movies-app\be-movies-app\controllers\authController.js">
-        <metrics statements="61" coveredstatements="61" conditionals="18" coveredconditionals="18" methods="3" coveredmethods="3"/>
-        <line num="1" count="5" type="stmt"/>
-        <line num="2" count="5" type="stmt"/>
-        <line num="3" count="5" type="stmt"/>
-        <line num="4" count="5" type="stmt"/>
-        <line num="5" count="5" type="stmt"/>
-        <line num="9" count="13" type="stmt"/>
-        <line num="10" count="13" type="stmt"/>
-        <line num="12" count="13" type="stmt"/>
-        <line num="19" count="2" type="stmt"/>
-        <line num="20" count="2" type="stmt"/>
-        <line num="21" count="2" type="stmt"/>
-        <line num="22" count="2" type="stmt"/>
-        <line num="23" count="2" type="stmt"/>
-        <line num="25" count="2" type="stmt"/>
-        <line num="30" count="11" type="stmt"/>
-        <line num="35" count="12" type="stmt"/>
-        <line num="36" count="12" type="stmt"/>
-        <line num="38" count="12" type="cond" truecount="2" falsecount="0"/>
-        <line num="39" count="3" type="stmt"/>
-        <line num="41" count="9" type="cond" truecount="2" falsecount="0"/>
-        <line num="42" count="3" type="stmt"/>
-        <line num="45" count="6" type="stmt"/>
-        <line num="49" count="6" type="cond" truecount="2" falsecount="0"/>
-        <line num="50" count="2" type="stmt"/>
-        <line num="53" count="4" type="stmt"/>
-        <line num="55" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="56" count="2" type="stmt"/>
-        <line num="59" count="2" type="stmt"/>
-        <line num="61" count="2" type="stmt"/>
-        <line num="62" count="2" type="stmt"/>
-        <line num="63" count="2" type="stmt"/>
-        <line num="64" count="2" type="stmt"/>
-        <line num="65" count="2" type="stmt"/>
-        <line num="67" count="2" type="stmt"/>
-        <line num="69" count="10" type="stmt"/>
-        <line num="74" count="7" type="stmt"/>
-        <line num="75" count="7" type="stmt"/>
-        <line num="77" count="7" type="cond" truecount="2" falsecount="0"/>
-        <line num="78" count="1" type="stmt"/>
-        <line num="81" count="6" type="stmt"/>
-        <line num="84" count="6" type="stmt"/>
-        <line num="89" count="3" type="stmt"/>
-        <line num="92" count="3" type="stmt"/>
-        <line num="96" count="3" type="cond" truecount="2" falsecount="0"/>
-        <line num="98" count="2" type="stmt"/>
-        <line num="101" count="2" type="stmt"/>
-        <line num="102" count="2" type="stmt"/>
-        <line num="103" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="104" count="1" type="stmt"/>
-        <line num="108" count="2" type="stmt"/>
-        <line num="119" count="3" type="stmt"/>
-        <line num="122" count="3" type="stmt"/>
-        <line num="123" count="3" type="stmt"/>
-        <line num="124" count="3" type="stmt"/>
-        <line num="125" count="3" type="stmt"/>
-        <line num="126" count="3" type="stmt"/>
-        <line num="128" count="3" type="stmt"/>
-        <line num="135" count="4" type="cond" truecount="4" falsecount="0"/>
-        <line num="136" count="1" type="stmt"/>
-        <line num="138" count="4" type="stmt"/>
-        <line num="143" count="5" type="stmt"/>
-      </file>
-      <file name="moviesController.js" path="C:\Users\neubr\Documents\hacktiv8\phase2\IndividualProject\movies-app\be-movies-app\controllers\moviesController.js">
+      <file name="MoviesController.js" path="C:\Users\neubr\Documents\hacktiv8\phase2\IndividualProject\movies-app\be-movies-app\controllers\MoviesController.js">
         <metrics statements="154" coveredstatements="119" conditionals="137" coveredconditionals="88" methods="29" coveredmethods="27"/>
         <line num="1" count="5" type="stmt"/>
         <line num="2" count="5" type="stmt"/>
@@ -262,6 +198,70 @@
         <line num="467" count="1" type="stmt"/>
         <line num="470" count="0" type="stmt"/>
         <line num="476" count="5" type="stmt"/>
+      </file>
+      <file name="authController.js" path="C:\Users\neubr\Documents\hacktiv8\phase2\IndividualProject\movies-app\be-movies-app\controllers\authController.js">
+        <metrics statements="61" coveredstatements="61" conditionals="18" coveredconditionals="18" methods="3" coveredmethods="3"/>
+        <line num="1" count="5" type="stmt"/>
+        <line num="2" count="5" type="stmt"/>
+        <line num="3" count="5" type="stmt"/>
+        <line num="4" count="5" type="stmt"/>
+        <line num="5" count="5" type="stmt"/>
+        <line num="9" count="13" type="stmt"/>
+        <line num="10" count="13" type="stmt"/>
+        <line num="12" count="13" type="stmt"/>
+        <line num="19" count="2" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="22" count="2" type="stmt"/>
+        <line num="23" count="2" type="stmt"/>
+        <line num="25" count="2" type="stmt"/>
+        <line num="30" count="11" type="stmt"/>
+        <line num="35" count="12" type="stmt"/>
+        <line num="36" count="12" type="stmt"/>
+        <line num="38" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="39" count="3" type="stmt"/>
+        <line num="41" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="42" count="3" type="stmt"/>
+        <line num="45" count="6" type="stmt"/>
+        <line num="49" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="50" count="2" type="stmt"/>
+        <line num="53" count="4" type="stmt"/>
+        <line num="55" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="56" count="2" type="stmt"/>
+        <line num="59" count="2" type="stmt"/>
+        <line num="61" count="2" type="stmt"/>
+        <line num="62" count="2" type="stmt"/>
+        <line num="63" count="2" type="stmt"/>
+        <line num="64" count="2" type="stmt"/>
+        <line num="65" count="2" type="stmt"/>
+        <line num="67" count="2" type="stmt"/>
+        <line num="69" count="10" type="stmt"/>
+        <line num="74" count="7" type="stmt"/>
+        <line num="75" count="7" type="stmt"/>
+        <line num="77" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="78" count="1" type="stmt"/>
+        <line num="81" count="6" type="stmt"/>
+        <line num="84" count="6" type="stmt"/>
+        <line num="89" count="3" type="stmt"/>
+        <line num="92" count="3" type="stmt"/>
+        <line num="96" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="98" count="2" type="stmt"/>
+        <line num="101" count="2" type="stmt"/>
+        <line num="102" count="2" type="stmt"/>
+        <line num="103" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="104" count="1" type="stmt"/>
+        <line num="108" count="2" type="stmt"/>
+        <line num="119" count="3" type="stmt"/>
+        <line num="122" count="3" type="stmt"/>
+        <line num="123" count="3" type="stmt"/>
+        <line num="124" count="3" type="stmt"/>
+        <line num="125" count="3" type="stmt"/>
+        <line num="126" count="3" type="stmt"/>
+        <line num="128" count="3" type="stmt"/>
+        <line num="135" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="136" count="1" type="stmt"/>
+        <line num="138" count="4" type="stmt"/>
+        <line num="143" count="5" type="stmt"/>
       </file>
       <file name="pubController.js" path="C:\Users\neubr\Documents\hacktiv8\phase2\IndividualProject\movies-app\be-movies-app\controllers\pubController.js">
         <metrics statements="109" coveredstatements="106" conditionals="117" coveredconditionals="106" methods="12" coveredmethods="12"/>
@@ -434,7 +434,7 @@
       </file>
     </package>
     <package name="be-movies-app.helpers">
-      <metrics statements="53" coveredstatements="52" conditionals="14" coveredconditionals="12" methods="13" coveredmethods="13"/>
+      <metrics statements="52" coveredstatements="51" conditionals="14" coveredconditionals="12" methods="13" coveredmethods="13"/>
       <file name="bcrypt.js" path="C:\Users\neubr\Documents\hacktiv8\phase2\IndividualProject\movies-app\be-movies-app\helpers\bcrypt.js">
         <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
         <line num="1" count="5" type="stmt"/>
@@ -446,7 +446,7 @@
         <line num="12" count="5" type="stmt"/>
       </file>
       <file name="gemini.js" path="C:\Users\neubr\Documents\hacktiv8\phase2\IndividualProject\movies-app\be-movies-app\helpers\gemini.js">
-        <metrics statements="39" coveredstatements="38" conditionals="14" coveredconditionals="12" methods="9" coveredmethods="9"/>
+        <metrics statements="38" coveredstatements="37" conditionals="14" coveredconditionals="12" methods="9" coveredmethods="9"/>
         <line num="1" count="6" type="stmt"/>
         <line num="10" count="12" type="stmt"/>
         <line num="12" count="12" type="stmt"/>
@@ -455,10 +455,9 @@
         <line num="18" count="11" type="stmt"/>
         <line num="19" count="11" type="stmt"/>
         <line num="22" count="11" type="stmt"/>
-        <line num="25" count="11" type="stmt"/>
-        <line num="27" count="74" type="stmt"/>
-        <line num="34" count="11" type="stmt"/>
-        <line num="40" count="74" type="stmt"/>
+        <line num="25" count="74" type="stmt"/>
+        <line num="32" count="11" type="stmt"/>
+        <line num="39" count="74" type="stmt"/>
         <line num="51" count="11" type="stmt"/>
         <line num="52" count="10" type="stmt"/>
         <line num="53" count="10" type="stmt"/>
@@ -473,19 +472,19 @@
         <line num="75" count="1" type="cond" truecount="1" falsecount="1"/>
         <line num="80" count="9" type="cond" truecount="1" falsecount="1"/>
         <line num="81" count="0" type="stmt"/>
-        <line num="85" count="53" type="cond" truecount="2" falsecount="0"/>
-        <line num="88" count="9" type="stmt"/>
-        <line num="89" count="147" type="stmt"/>
-        <line num="93" count="9" type="cond" truecount="2" falsecount="0"/>
-        <line num="94" count="3" type="stmt"/>
-        <line num="95" count="16" type="stmt"/>
-        <line num="97" count="5" type="stmt"/>
-        <line num="99" count="3" type="stmt"/>
-        <line num="103" count="9" type="stmt"/>
-        <line num="106" count="3" type="stmt"/>
-        <line num="109" count="3" type="stmt"/>
-        <line num="111" count="18" type="stmt"/>
-        <line num="115" count="6" type="stmt"/>
+        <line num="85" count="9" type="stmt"/>
+        <line num="86" count="53" type="cond" truecount="2" falsecount="0"/>
+        <line num="90" count="9" type="stmt"/>
+        <line num="91" count="147" type="stmt"/>
+        <line num="95" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="96" count="3" type="stmt"/>
+        <line num="97" count="16" type="stmt"/>
+        <line num="99" count="5" type="stmt"/>
+        <line num="101" count="3" type="stmt"/>
+        <line num="105" count="9" type="stmt"/>
+        <line num="107" count="3" type="stmt"/>
+        <line num="110" count="18" type="stmt"/>
+        <line num="114" count="6" type="stmt"/>
       </file>
       <file name="jwt.js" path="C:\Users\neubr\Documents\hacktiv8\phase2\IndividualProject\movies-app\be-movies-app\helpers\jwt.js">
         <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
