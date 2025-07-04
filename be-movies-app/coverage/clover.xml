@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1751597992961" clover="3.2.0">
-  <project timestamp="1751597992961" name="All files">
+<coverage generated="1751600286570" clover="3.2.0">
+  <project timestamp="1751600286570" name="All files">
     <metrics statements="552" coveredstatements="507" conditionals="343" coveredconditionals="273" methods="77" coveredmethods="75" elements="972" coveredelements="855" complexity="0" loc="552" ncloc="552" packages="5" files="16" classes="16"/>
     <package name="be-movies-app">
       <metrics statements="32" coveredstatements="32" conditionals="2" coveredconditionals="1" methods="0" coveredmethods="0"/>
